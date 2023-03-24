@@ -1,5 +1,5 @@
 {
   "model": "text-davinci-003",
   "max_tokens": 2048,
-  "file_extension": "json"
+  "file_extension": "txt"
 }
