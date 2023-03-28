@@ -1,0 +1,37 @@
+#!/bin/bash
+
+DIR="/home/$USER/chatgpt";
+
+if [ ! -d "$DIR/output" ]; then
+  mkdir output;
+fi
+
+if [ ! -f "$DIR/.env" ]; then
+  TOKEN=$(zenity --entry --title "Informe o token" --text "Token");
+  echo "OPENAI_API_KEY='$TOKEN'" > .env;
+fi
+
+source /home/$USER/chatgpt/.env;
+
+PROMPT=$(zenity --text-info --width 500 --height 300 --editable --title "Prompt" | sed -e 's/$/\\n/' | tr -d '\n');
+MODEL="text-davinci-002";
+
+if [ -z "$PROMPT" ]; then
+  exit 1;
+else
+  curl https://api.openai.com/v1/engines/$MODEL/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -d "{\"prompt\": \"$PROMPT\", \"max_tokens\": 2048}" \
+  -o response.json
+
+  timestamp=$(date +%s);
+
+  RESPONSE=$(jq -r '.choices[0].text' response.json);
+
+  # echo $RESPONSE;
+
+  echo -e "\n\nUser:\n$PROMPT\n\nChatGPT:$RESPONSE\n\n\n" >> output/$"$timestamp".txt;
+
+  zenity --info --title "Resposta" --text "Arquivo foi criado com sucesso.";
+fi
